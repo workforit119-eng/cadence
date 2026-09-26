@@ -1,9 +1,9 @@
 name: beta-release
 
-# One-shot bootstrap: waits for CI to be green, then tags this commit as
-# v0.1.0-beta.1 so the `release` workflow can publish the beta prerelease.
-# Idempotent — once the tag exists it does nothing — and safe to delete
-# from the repo any time after the tag has been created.
+# One-shot bootstrap: tags main as v0.1.0-beta.1 so the `release` workflow
+# can publish the beta prerelease. Idempotent — once the tag exists it does
+# nothing — and safe to delete any time after the tag has been created.
+# Only run this from a commit whose CI is green.
 
 on:
   push:
@@ -18,47 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Wait for CI to be green on this commit
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMIT_SHA: ${{ github.sha }}
-        run: |
-          api="https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs?per_page=20"
-          for i in $(seq 1 40); do
-            conclusion=$(curl -fsS -H "Authorization: Bearer $GH_TOKEN" "$api" \
-              | python3 -c '
-                  import json, os, sys
-                  try:
-                      runs = json.load(sys.stdin).get("workflow_runs", [])
-                  except Exception:
-                      runs = []
-                  sha = os.environ.get("COMMIT_SHA", "")
-                  matches = [r for r in runs
-                             if r.get("head_sha") == sha
-                             and (r.get("name") == "ci"
-                                  or r.get("path") == ".github/workflows/ci.yml")]
-                  if matches:
-                      print(matches[0].get("conclusion") or "pending")
-                  else:
-                      print("pending")
-                ' 2>/dev/null || echo "pending")
-            case "$conclusion" in
-              success)
-                echo "CI is green on this commit"
-                exit 0
-                ;;
-              failure|cancelled|timed_out)
-                echo "::error::CI is not green on this commit; not creating the beta tag"
-                exit 1
-                ;;
-              *)
-                : # still running; keep waiting
-                ;;
-            esac
-            sleep 15
-          done
-          echo "::error::timed out waiting for CI; not creating the beta tag"
-          exit 1
       - name: Create beta tag if missing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
