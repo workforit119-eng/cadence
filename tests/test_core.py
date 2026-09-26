@@ -139,6 +139,26 @@ class TestStore:
         with pytest.raises(CadenceError):
             Store.load(path)
 
+    def test_empty_file_is_a_fresh_store(self, tmp_path):
+        path = tmp_path / "d.json"
+        path.write_text("", encoding="utf-8")
+        store = Store.load(path)
+        assert store.habits == {}
+        store.add("Stretch", T)
+        data = json.loads(path.read_text(encoding="utf-8"))
+        assert "Stretch" in data["habits"]
+
+    def test_whitespace_file_is_a_fresh_store(self, tmp_path):
+        path = tmp_path / "d.json"
+        path.write_text(" \n\t\n", encoding="utf-8")
+        assert Store.load(path).habits == {}
+
+    def test_wrong_shape_raises(self, tmp_path):
+        path = tmp_path / "bad.json"
+        path.write_text("[]", encoding="utf-8")
+        with pytest.raises(CadenceError):
+            Store.load(path)
+
     def test_saved_file_is_plain_json(self, tmp_path):
         path = tmp_path / "d.json"
         store = Store.load(path)

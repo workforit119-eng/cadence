@@ -62,11 +62,28 @@ class Store:
         if not path.exists():
             return cls({}, path)
         try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError) as exc:
+            raw = path.read_text(encoding="utf-8")
+        except OSError as exc:
             raise CadenceError("could not read data file %s: %s" % (path, exc))
+        if not raw.strip():
+            # An empty file is a fresh start, not an error (e.g. one created
+            # by `mktemp` or left behind by an interrupted write).
+            return cls({}, path)
+        try:
+            data = json.loads(raw)
+        except ValueError as exc:
+            raise CadenceError("could not read data file %s: %s" % (path, exc))
+        if not isinstance(data, dict):
+            raise CadenceError(
+                "could not read data file %s: expected a JSON object" % path
+            )
+        habits_map = data.get("habits", {})
+        if not isinstance(habits_map, dict):
+            raise CadenceError(
+                "could not read data file %s: expected an object of habits" % path
+            )
         habits: Dict[str, Habit] = {}
-        for name, h in data.get("habits", {}).items():
+        for name, h in habits_map.items():
             habits[name] = Habit(
                 name=name,
                 created=h.get("created", ""),
