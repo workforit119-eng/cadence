@@ -1,9 +1,12 @@
 name: beta-release
 
-# One-shot bootstrap: tags main as v0.1.0-beta.1 so the `release` workflow
-# can publish the beta prerelease. Idempotent — once the tag exists it does
-# nothing — and safe to delete any time after the tag has been created.
-# Only run this from a commit whose CI is green.
+# One-shot bootstrap: makes sure tag v0.1.0-beta.1 and its prerelease exist,
+# creating whichever is missing. GitHub does not run workflows for pushes
+# made by GITHUB_TOKEN, so the release is created here instead of relying on
+# the `release` workflow (which still handles human-pushed stable tags).
+# Idempotent — once the tag and release exist it does nothing — and safe to
+# delete any time after both exist. Only run this from a commit whose CI is
+# green.
 
 on:
   push:
@@ -18,17 +21,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create beta tag if missing
+      - name: Create beta tag and prerelease if missing
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: v0.1.0-beta.1
         run: |
           if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
-            echo "tag ${TAG} already exists - nothing to do"
+            echo "tag ${TAG} already exists"
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "${TAG}" -m "cadence v0.1.0b1 (beta)"
+            git push origin "refs/tags/${TAG}"
+            echo "created and pushed tag ${TAG}"
+          fi
+          if gh release view "${TAG}" >/dev/null 2>&1; then
+            echo "release ${TAG} already exists - nothing to do"
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git tag -a "${TAG}" -m "cadence v0.1.0b1 (beta)"
-          git push origin "refs/tags/${TAG}"
-          echo "created and pushed tag ${TAG}"
+          gh release create "${TAG}" \
+            --title "cadence v0.1.0b1 (beta)" \
+            --notes "First public beta of cadence, a tiny habit tracker CLI. Install: pip install git+https://github.com/workforit119-eng/cadence.git@v0.1.0-beta.1 - or see the README. Try: cadence add Read | cadence done Read | cadence ls | cadence week. Feedback welcome in the issues."
+          echo "created release ${TAG}"
