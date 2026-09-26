@@ -1,0 +1,64 @@
+name: beta-release
+
+# One-shot bootstrap: waits for CI to be green, then tags this commit as
+# v0.1.0-beta.1 so the `release` workflow can publish the beta prerelease.
+# Idempotent — once the tag exists it does nothing — and safe to delete
+# from the repo any time after the tag has been created.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  tag-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for CI to be green on this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          for i in $(seq 1 40); do
+            conclusion=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs?per_page=10" \
+              | python3 -c '
+                  import json, os, sys
+                  runs = json.load(sys.stdin).get("workflow_runs", [])
+                  sha = os.environ["COMMIT_SHA"]
+                  matches = [r for r in runs
+                             if r["head_sha"] == sha and r["workflow_name"] == "ci"]
+                  print(matches[0].get("conclusion") if matches else "pending")
+                ')
+            case "$conclusion" in
+              success)
+                echo "CI is green on this commit"
+                exit 0
+                ;;
+              failure|cancelled|timed_out)
+                echo "::error::CI is not green on this commit; not creating the beta tag"
+                exit 1
+                ;;
+            esac
+            sleep 15
+          done
+          echo "::error::timed out waiting for CI; not creating the beta tag"
+          exit 1
+      - name: Create beta tag if missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v0.1.0-beta.1
+        run: |
+          if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
+            echo "tag ${TAG} already exists - nothing to do"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${TAG}" -m "cadence v0.1.0b1 (beta)"
+          git push origin "refs/tags/${TAG}"
+          echo "created and pushed tag ${TAG}"
