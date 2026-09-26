@@ -7,6 +7,20 @@ No accounts. No cloud. No sync. One command to check off your day.
 > **Beta** — cadence is `0.1.0b1`: stable enough to live with daily, but the
 > data format and CLI may still change as it matures.
 
+## What it looks like
+
+Quick start — add a habit, then check it off:
+
+![cadence quick start](docs/screenshots/quickstart.svg)
+
+`cadence ls` — every habit with its streak, best streak, today, and total:
+
+![cadence ls](docs/screenshots/ls.svg)
+
+`cadence week` — the last seven days at a glance:
+
+![cadence week](docs/screenshots/week.svg)
+
 ## Install
 
 ```sh

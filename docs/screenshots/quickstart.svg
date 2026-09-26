@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="477" height="242" viewBox="0 0 477 242">
+  <title>cadence</title>
+  <rect x="0.5" y="0.5" width="476" height="241" rx="11" fill="#0d1117" stroke="#30363d"/>
+  <path d="M0.5 44 V11.5 Q0.5 0.5 11.5 0.5 H465 Q476 0.5 476 11.5 V44 Z" fill="#161b22"/>
+  <line x1="0.5" y1="44" x2="476" y2="44" stroke="#30363d" stroke-opacity="0.5"/>
+  <circle cx="26" cy="22" r="6.5" fill="#ff5f57"/>
+  <circle cx="48" cy="22" r="6.5" fill="#febc2e"/>
+  <circle cx="70" cy="22" r="6.5" fill="#28c840"/>
+  <g font-family="ui-monospace,&#x27;Cascadia Mono&#x27;,&#x27;SF Mono&#x27;,Menlo,Consolas,monospace" font-size="15">
+    <text x="28" y="75">
+      <tspan fill="#3fb950">$</tspan>
+      <tspan fill="#e6edf3"> cadence add &quot;Read 30 minutes&quot;</tspan>
+    </text>
+    <text x="28" y="99">
+      <tspan fill="#8b949e">added </tspan>
+      <tspan fill="#e6edf3">&#x27;Read 30 minutes&#x27;</tspan>
+    </text>
+    <text x="28" y="147">
+      <tspan fill="#8b949e">check it off with: </tspan>
+      <tspan fill="#c9d1d9">cadence done Read 30 minutes</tspan>
+    </text>
+    <text x="28" y="195">
+      <tspan fill="#3fb950">$</tspan>
+      <tspan fill="#e6edf3"> cadence done &quot;Read 30 minutes&quot;</tspan>
+    </text>
+    <text x="28" y="219">
+      <tspan fill="#e6edf3">Read 30 minutes</tspan>
+      <tspan fill="#8b949e">: </tspan>
+      <tspan fill="#3fb950">✓</tspan>
+      <tspan fill="#8b949e"> 2026-09-26</tspan>
+      <tspan fill="#8b949e">  (streak </tspan>
+      <tspan fill="#79c0ff">1d</tspan>
+      <tspan fill="#8b949e">)</tspan>
+    </text>
+  </g>
+</svg>
